@@ -1,6 +1,7 @@
 import express from 'express'
 import routes from './routes'
 import dotenv from 'dotenv'
+import { errorHandler } from './middleware.ts/errorMiddleware'
 
 dotenv.config()
 
@@ -11,6 +12,8 @@ app.use(express.json())
 app.use('/api', routes.userRouter);
 app.use('/api', routes.eventRouter);
 app.use('/api/auth', routes.authRouter);
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 
