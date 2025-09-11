@@ -1,9 +1,9 @@
 import prisma from "../prismaClient";
 
-export async function createEvents(distinct_id:string, event:string, properties:object){
+export async function createEvents(userId:number, event:string, properties:object){
 
     const user = await prisma.user.findUnique({
-        where: {distinct_id}
+        where: {id: userId}
     })
 
     if (!user) throw new Error('User not found');
