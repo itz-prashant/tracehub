@@ -9,6 +9,7 @@ const app = express()
 app.use(express.json())
 
 app.use('/api', routes.userRouter);
+app.use('/api', routes.eventRouter);
 
 const PORT = process.env.PORT
 
