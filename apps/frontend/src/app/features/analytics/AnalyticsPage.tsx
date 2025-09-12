@@ -1,42 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { getEventCount } from "./analyticsService";
+import { useEffect, useState } from "react";
+import { fetchEventCount } from "./analyticsService";
 
 const AnalyticsPage = () => {
-  const [eventName, setEventName] = useState("");
-  const [count, setCount] = useState<number | null>(null);
-  const [error, setError] = useState("");
+  const [eventCount, setEventCount] = useState<number | null>(null);
 
-  const handleFetchCount = async () => {
-    try {
-      const token = localStorage.getItem("authToken") || "";
-      const data = await getEventCount(eventName, token);
-      setCount(data.count);
-      setError("");
-    } catch (error: unknown) {
-  if (error instanceof Error) {
-    setError(error.message);
-  } else {
-    setError(String(error));
-  }
-  setCount(null);
-}
-
-  };
+  useEffect(()=>{
+    async function loadEventCount() {
+        const count = await fetchEventCount("page_view")
+        setEventCount(count)
+    }
+    loadEventCount()
+  }, [])
 
   return (
-    <div>
-      <h1>Analytics Dashboard</h1>
-      <input
-        type="text"
-        placeholder="Enter event name"
-        value={eventName}
-        onChange={(e) => setEventName(e.target.value)}
-      />
-      <button onClick={handleFetchCount}>Get Event count</button>
-      {count !== null && <p>Event Count: {count}</p>}
-      {error && <p className="text-red-500">{error}</p>}
+   <div className="max-w-4xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Analytics Dashboard</h1>
+      
+      {eventCount !== null ? (
+        <div className="p-4 bg-blue-100 rounded shadow">
+          <p className="text-lg">Page View Count: {eventCount}</p>
+        </div>
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
 };
