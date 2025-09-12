@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
-  "build": "tsc",
-  "start": "node dist/server.js"
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -14,8 +14,10 @@
   "dependencies": {
     "@prisma/client": "^6.15.0",
     "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
