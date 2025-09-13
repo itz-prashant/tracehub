@@ -1,16 +1,11 @@
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'jwtsecret'
+const JWT_SECRET = process.env.JWT_SECRET || 'jwtsecret';
 
-export function generateToken(userID:number): string{
-    return jwt.sign({userID}, JWT_SECRET, {expiresIn: '1h'})
+export function generateToken(userId: number, role: 'ADMIN' | 'CLIENT'): string {
+    return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: '1h' });
 }
 
-export function verifyToken(token:string): {userId: number} {
-    try {
-        const payload = jwt.verify(token, JWT_SECRET) as {userId: number};
-        return payload
-    } catch (error) {
-        throw new Error('Invalid token');
-    }
+export function verifyToken(token: string): { userId: number, role: 'ADMIN' | 'CLIENT' } {
+    return jwt.verify(token, JWT_SECRET) as { userId: number, role: 'ADMIN' | 'CLIENT' };
 }

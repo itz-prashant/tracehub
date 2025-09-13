@@ -3,6 +3,7 @@ import { verifyToken } from "../utils/auth";
 
 export interface AuthRequest extends Request {
     userId?: number;
+    role?: 'ADMIN' | 'CLIENT';
 }
 
 export function authenticateToken(req:Request, res:Response, next:NextFunction){
@@ -15,7 +16,6 @@ export function authenticateToken(req:Request, res:Response, next:NextFunction){
 
     try {
         const payload = verifyToken(token)
-        console.log('payload', payload)
         // @ts-ignore
         req.userId = payload.userID
         next()
