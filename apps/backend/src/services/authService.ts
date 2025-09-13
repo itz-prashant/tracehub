@@ -1,33 +1,15 @@
-import bcrypt from 'bcrypt'
 import prisma from '../prismaClient'
-import { generateToken } from '../utils/auth'
-import { createUser } from './userService'
+import bcrypt from 'bcrypt'
+import jwt from "jsonwebtoken";
 
 
-export async function signup(distinct_id: string, email: string, password: string, properties?:object) {
-    const hashedPassword = await bcrypt.hash(password, 10)
+export async function authenticateUser(email: string, password: string) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new Error('Invalid credentials');
 
-    const user = await createUser(
-        distinct_id,
-        email,
-        hashedPassword,
-        properties
-    )
-
-    const token  = generateToken(user.id)
-    return {user, token}
-}
-
-export async function login(email:string, password:string) {
-    const user = await prisma.user.findUnique({
-        where: {email}
-    })
-
-    if (!user) throw new Error('User not found');
-
-    const isValid = await bcrypt.compare(password, user.password)
+    const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) throw new Error('Invalid credentials');
 
-    const token = generateToken(user.id)
-    return {user, token}
+    const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '7d' });
+    return { token, user };
 }

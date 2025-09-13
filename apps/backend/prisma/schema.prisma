@@ -16,21 +16,47 @@ datasource db {
 
 model User {
   id          Int      @id @default(autoincrement())
-  distinct_id String   @unique
   email       String   @unique
-  password    String    
-  properties  Json?
+  password    String
+  role        UserRole
   created_at  DateTime @default(now())
+  clients     Client[]  
 
-  events      Event[]   // Relation
+}
+
+model Client {
+  id          Int      @id @default(autoincrement())
+  user_id     Int      // Reference to User
+  name        String
+  created_at  DateTime @default(now())
+  websites    Website[]
+
+  user        User     @relation(fields: [user_id], references: [id])
+}
+
+model Website {
+  id            Int      @id @default(autoincrement())
+  client_id     Int
+  name          String
+  url           String   @unique
+  script_key    String   @unique
+  created_at    DateTime @default(now())
+  events        Event[]
+
+  client       Client   @relation(fields: [client_id], references: [id])
 }
 
 model Event {
   id          Int      @id @default(autoincrement())
-  user_id     Int
+  website_id  Int
   event_name  String
   properties  Json?
   timestamp   DateTime @default(now())
 
-  user        User     @relation(fields: [user_id], references: [id])
+  website     Website  @relation(fields: [website_id], references: [id])
+}
+
+enum UserRole {
+  ADMIN
+  CLIENT
 }
