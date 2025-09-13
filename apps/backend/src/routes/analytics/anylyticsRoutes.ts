@@ -1,11 +1,9 @@
 import {Router} from 'express'
 import { authenticateToken } from '../../middleware.ts/authMiddleware'
-import { handleGetEventCount, handleGetUserEvent } from '../../controllers/analyticsController'
-
+import { handleFetchAnalytics } from '../../controllers/analyticsController'
 
 const analyticsRouter = Router()
 
-analyticsRouter.get('/event-count', authenticateToken, handleGetEventCount)
-analyticsRouter.get('/user-events', authenticateToken, handleGetUserEvent)
+analyticsRouter.get('/:script_key', authenticateToken, handleFetchAnalytics)
 
 export default analyticsRouter
