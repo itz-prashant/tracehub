@@ -12,7 +12,8 @@ app.use(express.json())
 
 app.use('/api/auth', routes.authRouter);
 app.use('/api/events', routes.eventRouter);
-app.use('/api', routes.userRouter);
+app.use('/api/websites', routes.websiteRouter);
+app.use('/api/users', routes.userRouter);
 app.use('/api/analytics', routes.analyticsRouter);
 
 app.use(errorHandler)
