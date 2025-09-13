@@ -1,23 +1,27 @@
 import prisma from "../prismaClient";
 
-export async function createEvent(websiteId: number, eventName: string, properties?: object) {
-    return prisma.event.create({
-        data: {
-            website_id: websiteId,
-            event_name: eventName,
-            properties
-        }
-    });
+interface EventPayload {
+  script_key: string
+  event_name: string
+  properties?: Record<string, any>
 }
 
-export async function getEventsByWebsite(websiteId: number) {
-    return prisma.event.findMany({
-        where: { website_id: websiteId }
-    });
-}
+export async function trackEvent(payload:EventPayload) {
+    const {script_key, event_name, properties} = payload
 
-export async function getEventCountByWebsite(websiteId: number) {
-    return prisma.event.count({
-        where: { website_id: websiteId }
-    });
+    const website = await prisma.website.findUnique({
+        where:{script_key}
+    })
+
+    if (!website) {
+    throw new Error("Invalid script_key");
+  }
+
+  return prisma.event.create({
+    data:{
+        website_id: website.id,
+        event_name,
+        properties: properties || {}
+    }
+  })
 }
