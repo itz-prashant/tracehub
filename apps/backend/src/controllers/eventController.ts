@@ -1,36 +1,36 @@
-import { Request, Response } from "express";
-import { createEvents, getAllEvents } from "../services/eventService";
+import { Response } from "express";
+import { createEvent, getEventsByWebsite, getEventCountByWebsite } from "../services/eventService";
 import { AuthRequest } from "../middleware.ts/authMiddleware";
 
-
-export async function handleCreateEvents(req: AuthRequest, res: Response) {
-    const { event_name, properties } = req.body;
-    const userId = req.userId;
-    console.log("userId", userId);
-
-    if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized: User ID missing' });
-    }
+export async function handleCreateEvent(req: AuthRequest, res: Response) {
+    const { websiteId, event_name, properties } = req.body;
 
     try {
-        const event = await createEvents(userId, event_name, properties);
-        res.status(200).json(event);
+        const event = await createEvent(websiteId, event_name, properties);
+        res.status(201).json(event);
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });
     }
 }
 
-export async function handleGetAllEvents(req: AuthRequest, res: Response) {
-    const userId = req.userId;
-
-    if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized: User ID missing' });
-    }
+export async function handleGetEventsByWebsite(req: AuthRequest, res: Response) {
+    const { websiteId } = req.params;
 
     try {
-        const events = await getAllEvents();
+        const events = await getEventsByWebsite(Number(websiteId));
         res.status(200).json(events);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch events' });
+    }
+}
+
+export async function handleGetEventCount(req: AuthRequest, res: Response) {
+    const { websiteId } = req.params;
+
+    try {
+        const count = await getEventCountByWebsite(Number(websiteId));
+        res.status(200).json({ count });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get event count' });
     }
 }

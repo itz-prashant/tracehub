@@ -10,9 +10,9 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-app.use('/api', routes.userRouter);
-app.use('/api', routes.eventRouter);
 app.use('/api/auth', routes.authRouter);
+app.use('/api/events', routes.eventRouter);
+app.use('/api', routes.userRouter);
 app.use('/api/analytics', routes.analyticsRouter);
 
 app.use(errorHandler)

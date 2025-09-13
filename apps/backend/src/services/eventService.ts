@@ -1,22 +1,23 @@
 import prisma from "../prismaClient";
 
-export async function createEvents(userId:number, event:string, properties:object){
-
-    const user = await prisma.user.findUnique({
-        where: {id: userId}
-    })
-
-    if (!user) throw new Error('User not found');
-
+export async function createEvent(websiteId: number, eventName: string, properties?: object) {
     return prisma.event.create({
-        data:{
-            user_id: user.id,
-            event_name: event,
+        data: {
+            website_id: websiteId,
+            event_name: eventName,
             properties
         }
-    })
+    });
 }
 
-export async function getAllEvents() {
-    return prisma.event.findMany()
+export async function getEventsByWebsite(websiteId: number) {
+    return prisma.event.findMany({
+        where: { website_id: websiteId }
+    });
+}
+
+export async function getEventCountByWebsite(websiteId: number) {
+    return prisma.event.count({
+        where: { website_id: websiteId }
+    });
 }
