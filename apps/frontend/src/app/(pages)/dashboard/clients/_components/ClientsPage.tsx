@@ -11,7 +11,13 @@ interface User {
 }
 
 export default function ClientsPage() {
+
   const [clients, setClients] = useState<User[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [error, setError] = useState("");
 
   const fetchClients = async () => {
     const token = localStorage.getItem("authToken");
@@ -29,6 +35,53 @@ export default function ClientsPage() {
     setClients(fliterClient);
   };
 
+  const handleAddClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("authToken");
+
+      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${token}`,
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          role: "CLIENT",
+        }),
+      });
+
+      if (!userRes.ok) throw new Error("Failed to add client");
+
+      const userData = await userRes.json();
+
+      const clientRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${token}`,
+        },
+        body: JSON.stringify({ clientName, user_id: userData.id }),
+      });
+
+      if (!clientRes.ok) throw new Error("Failed to create client");
+
+      setEmail("");
+      setPassword("");
+      setClientName("");
+      setShowForm(false);
+      fetchClients();
+    } catch (err) {
+      if (err instanceof Error) {
+    setError(err.message);
+  } else {
+    setError("Something went wrong");
+  }
+    }
+  };
+
   useEffect(() => {
     fetchClients();
   }, []);
@@ -37,7 +90,7 @@ export default function ClientsPage() {
     <div className="p-8">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Clients</h1>
-        <button className=" bg-white px-2 py-1 text-black rounded cursor-pointer">
+        <button onClick={() => setShowForm(true)} className=" bg-white px-2 py-1 text-black rounded cursor-pointer">
           Add client
         </button>
       </div>
@@ -61,6 +114,60 @@ export default function ClientsPage() {
           ))}
         </tbody>
       </table>
+
+      {showForm && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md text-black">
+            <h2 className="text-xl font-semibold mb-4">Add New Client</h2>
+
+            {error && <p className="text-red-500 mb-2">{error}</p>}
+
+            <form onSubmit={handleAddClient} className="flex flex-col gap-4">
+
+              <input
+                type="text"
+                placeholder="Client Name"
+                className="p-2 border rounded"
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                required
+              />
+
+              <input
+                type="email"
+                placeholder="Client Email"
+                className="p-2 border rounded"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+
+              <input
+                type="password"
+                placeholder="Client Password"
+                className="p-2 border rounded"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+
+              <div className="flex justify-between">
+                <button type="submit" className="bg-black cursor-pointer text-white p-2 rounded">
+                  Create
+                </button>
+
+                <button
+                  type="button"
+                  className="bg-gray-300 p-2 rounded cursor-pointer"
+                  onClick={() => setShowForm(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
