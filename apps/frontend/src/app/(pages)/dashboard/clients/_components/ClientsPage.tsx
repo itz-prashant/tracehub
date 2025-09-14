@@ -35,6 +35,21 @@ export default function ClientsPage() {
     setClients(fliterClient);
   };
 
+  const fetchClients2 = async () => {
+    const token = localStorage.getItem("authToken");
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${token}`,
+      },
+    });
+
+    const data = await res.json();
+    console.log("data",data)
+  };
+
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -84,6 +99,7 @@ export default function ClientsPage() {
 
   useEffect(() => {
     fetchClients();
+    fetchClients2()
   }, []);
 
   return (

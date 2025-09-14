@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import { createUser, getAllUser } from "../services/userService";
 import { AuthRequest } from "../middleware.ts/authMiddleware";
 
-export async function handleCreateUser(req: Request, res: Response) {
-  const {userId, email, password, role } = req.body;
+export async function handleCreateUser(req: AuthRequest, res: Response) {
+  const {email, password, role } = req.body;
+  const userId = req.userId
 if(!userId){
        return res.status(401).json({ error: 'Unauthorized: User ID missing' });
     }
@@ -17,7 +18,6 @@ if(!userId){
 
 export async function handleGetAllUsers(req: AuthRequest, res: Response) {
   const clientId = req.userId;
-console.log("clientId", clientId)
   if (!clientId)
     return res.status(401).json({ error: "Unauthorized: User ID missing" });
   try {
