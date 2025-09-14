@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { API_URL } from "@/config/constant"
 
@@ -35,6 +35,13 @@ export default function LoginPage() {
   }
     }
   }
+
+  useEffect(()=>{
+    const token = localStorage.getItem('authToken');
+    if(token){
+      router.push('/dashboard')
+    }
+  },[])
 
   return (
     <div className="max-w-md mx-auto mt-60">
