@@ -15,7 +15,7 @@ import { AuthRequest } from "../middleware.ts/authMiddleware";
 
 export async function handleGetAllUsers(req: AuthRequest, res: Response) {
   const clientId = req.userId;
-
+console.log("clientId", clientId)
   if (!clientId)
     return res.status(401).json({ error: "Unauthorized: User ID missing" });
   try {
