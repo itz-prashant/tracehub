@@ -19,7 +19,7 @@ export default function ClientsPage() {
   const [clientName, setClientName] = useState("");
   const [error, setError] = useState("");
 
-  const fetchClients = async () => {
+  const fetchUserClients = async () => {
     const token = localStorage.getItem("authToken");
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/`, {
@@ -35,27 +35,27 @@ export default function ClientsPage() {
     setClients(fliterClient);
   };
 
-  const fetchClients2 = async () => {
-    const token = localStorage.getItem("authToken");
+  // const fetchClients = async () => {
+  //   const token = localStorage.getItem("authToken");
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients/`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `${token}`,
-      },
-    });
+  //   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients/`, {
+  //     method: "GET",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Authorization: `${token}`,
+  //     },
+  //   });
 
-    const data = await res.json();
-    console.log("data",data)
-  };
+  //   const data = await res.json();
+  //   console.log("data",data)
+  // };
 
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("authToken");
 
-      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/`, {
+      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,31 +63,31 @@ export default function ClientsPage() {
         },
         body: JSON.stringify({
           email,
+          clientName,
           password,
-          role: "CLIENT",
         }),
       });
 
       if (!userRes.ok) throw new Error("Failed to add client");
 
-      const userData = await userRes.json();
+      // const userData = await userRes.json();
 
-      const clientRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${token}`,
-        },
-        body: JSON.stringify({ clientName, user_id: userData.id }),
-      });
+      // const clientRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients/`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     Authorization: `${token}`,
+      //   },
+      //   body: JSON.stringify({ clientName, user_id: userData.id }),
+      // });
 
-      if (!clientRes.ok) throw new Error("Failed to create client");
+      // if (!clientRes.ok) throw new Error("Failed to create client");
 
       setEmail("");
       setPassword("");
       setClientName("");
       setShowForm(false);
-      fetchClients();
+      fetchUserClients();
     } catch (err) {
       if (err instanceof Error) {
     setError(err.message);
@@ -98,8 +98,8 @@ export default function ClientsPage() {
   };
 
   useEffect(() => {
-    fetchClients();
-    fetchClients2()
+    fetchUserClients();
+    // fetchClients()
   }, []);
 
   return (

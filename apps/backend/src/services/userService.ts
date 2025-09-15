@@ -1,11 +1,12 @@
 import prisma from "../prismaClient";
+import bcrypt from "bcrypt"
 
 export async function createUser(email: string, password: string, role: "ADMIN"| "CLIENT") {
-    // @ts-ignore
+const hashedPassword = await bcrypt.hash(password, 10)
     return prisma.user.create({
         data: {    
             email,
-            password,
+            password: hashedPassword,
             role
         }
     });

@@ -2,12 +2,20 @@ import prisma from "../prismaClient"
 import { v4 as uuidv4 } from 'uuid';
 
 
-export async function createWebsite(clientId:number, name:string, url:string) {
+export async function createWebsite(userId:number, name:string, url:string) {
     const scriptKey = uuidv4()
+
+    const clientExist = await prisma.client.findFirst({
+        where: { user_id: userId }
+    });
+
+if (!clientExist) {
+  throw new Error("Client (user) does not exist");
+}
 
     return prisma.website.create({
         data:{
-            client_id: clientId,
+            client_id: clientExist.id,
             name,
             url,
             script_key:scriptKey
@@ -15,8 +23,12 @@ export async function createWebsite(clientId:number, name:string, url:string) {
     })
 }
 
-export async function getWebsiteByClient(clientId: number) {
+export async function getWebsiteByClient(userId: number) {
+    const clientExist = await prisma.client.findFirst({
+        where: { user_id: userId }
+    });
+
     return prisma.website.findMany({
-        where: {client_id: clientId}
+        where: {client_id: clientExist?.id}
     })
 }
