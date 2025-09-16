@@ -51,6 +51,7 @@ model Event {
   website_id  Int
   event_name  String
   properties  Json?
+  distinct_id  String
   timestamp   DateTime @default(now())
 
   website     Website  @relation(fields: [website_id], references: [id])

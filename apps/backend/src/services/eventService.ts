@@ -4,10 +4,11 @@ interface EventPayload {
   script_key: string
   event_name: string
   properties?: Record<string, any>
+  distinct_id: string
 }
 
 export async function trackEvent(payload:EventPayload) {
-    const {script_key, event_name, properties} = payload
+    const {script_key, event_name, properties, distinct_id} = payload
 
     const website = await prisma.website.findUnique({
         where:{script_key}
@@ -21,7 +22,8 @@ export async function trackEvent(payload:EventPayload) {
     data:{
         website_id: website.id,
         event_name,
-        properties: properties || {}
+        properties: properties || {},
+        distinct_id:distinct_id
     }
   })
 }

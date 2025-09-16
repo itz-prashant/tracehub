@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import AddWebsiteForm from './AddWebsiteForm';
+import { API_URL } from '@/config/constant';
 
 interface Website {
   id: number;
@@ -56,7 +57,7 @@ const ClientView = () => {
               <td className="p-2 border">{site.name}</td>
               <td className="p-2 border">{site.url}</td>
               <td className="p-2 border">
-                <code>{`<script src="${site.url}tracking.js?id=${site.script_key}"></script>`}</code>
+                <code>{`<script src="${API_URL}/tracking.js?id=${site.script_key}"></script>`}</code>
               </td>
             </tr>
           ))}
