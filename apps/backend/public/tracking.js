@@ -96,18 +96,32 @@
 
   window.addEventListener("tracehub-route-change", triggerPageView);
 
-  // Core tracking - Add form submit handler
-function handleFormSubmit(event) {
-  const form = event.target;
-  sendEvent("form_submit", {
-    form_id: form.id || null,
-    form_action: form.action || null,
-    form_method: form.method || "GET",
-    fields_count: form.elements.length,
+  // Core tracking - Add click event handler
+  document.addEventListener("click", function (event) {
+    const target = event.target;
+    // Only track clicks on BUTTON and A elements (expand as needed)
+   if ((target.tagName === "BUTTON" && target.type !== "submit") || target.tagName === "A") {
+  sendEvent("click", {
+    element_tag: target.tagName,
+    element_id: target.id || null,
+    element_classes: target.className || null,
+    element_text: target.innerText || null,
   });
 }
 
-document.addEventListener("submit", handleFormSubmit, true);
+  }, true);
+
+  // Core tracking - Add form submit handler
+document.addEventListener("submit", function (event) {
+    const form = event.target;
+    sendEvent("form_submit", {
+        form_id: form.id || null,
+        form_action: form.action || null,
+        form_method: form.method || "POST",
+        fields_count: form.elements.length,
+        element_text: form.innerText || null,
+    });
+}, true);
 
 
 })();
