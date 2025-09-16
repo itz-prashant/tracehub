@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { authenticateToken } from "../../middleware.ts/authMiddleware";
 import { handleTrackEvent } from "../../controllers/eventController";
 
 
