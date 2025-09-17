@@ -4,11 +4,14 @@
 
   // Generate UUID
   function generateUUID() {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-      const r = (Math.random() * 16) | 0;
-      const v = c === "x" ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function (c) {
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      }
+    );
   }
 
   // Extract script_key from script tag
@@ -38,7 +41,6 @@
 
   // Send event
   function sendEvent(eventName, properties = {}) {
-
     fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -97,31 +99,65 @@
   window.addEventListener("tracehub-route-change", triggerPageView);
 
   // Core tracking - Add click event handler
-  document.addEventListener("click", function (event) {
-    const target = event.target;
-    // Only track clicks on BUTTON and A elements (expand as needed)
-   if ((target.tagName === "BUTTON" && target.type !== "submit") || target.tagName === "A") {
-  sendEvent("click", {
-    element_tag: target.tagName,
-    element_id: target.id || null,
-    element_classes: target.className || null,
-    element_text: target.innerText || null,
-  });
-}
-
-  }, true);
+  document.addEventListener(
+    "click",
+    function (event) {
+      const target = event.target;
+      // Only track clicks on BUTTON and A elements (expand as needed)
+      if (
+        (target.tagName === "BUTTON" && target.type !== "submit") ||
+        target.tagName === "A"
+      ) {
+        sendEvent("click", {
+          element_tag: target.tagName,
+          element_id: target.id || null,
+          element_classes: target.className || null,
+          element_text: target.innerText || null,
+        });
+      }
+    },
+    true
+  );
 
   // Core tracking - Add form submit handler
-document.addEventListener("submit", function (event) {
-    const form = event.target;
-    sendEvent("form_submit", {
+  document.addEventListener(
+    "submit",
+    function (event) {
+      const form = event.target;
+      sendEvent("form_submit", {
         form_id: form.id || null,
         form_action: form.action || null,
         form_method: form.method || "POST",
         fields_count: form.elements.length,
         element_text: form.innerText || null,
-    });
-}, true);
+      });
+    },
+    true
+  );
 
+  // Scroll Tracking Logic
+
+  let maxScrollPercent = 0;
+
+  function handleScroll() {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docHeight =
+      document.documentElement.scrollHeight - window.innerHeight;
+    const scrollPercent = Math.round((scrollTop / docHeight) * 100);
+
+    if (scrollPercent > maxScrollPercent) {
+      maxScrollPercent = scrollPercent;
+    }
+  }
+
+  function sendFinalScrollEvent() {
+    sendEvent("scroll_depth", { max_scroll_percentage: maxScrollPercent });
+  }
+  document.addEventListener("scroll", handleScroll);
+  window.addEventListener("beforeunload", sendFinalScrollEvent);
+  window.addEventListener("tracehub-route-change", () => {
+    sendFinalScrollEvent();
+    maxScrollPercent = 0;
+  });
 
 })();
