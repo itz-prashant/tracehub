@@ -48,11 +48,11 @@
         script_key: scriptKey,
         event_name: eventName,
         properties: {
-          ...properties,
           url: window.location.href,
           title: document.title,
           referrer: document.referrer || null,
           user_agent: navigator.userAgent,
+          ...properties,
         },
         distinct_id: distinctId,
         timestamp: new Date().toISOString(),
@@ -68,6 +68,51 @@
   };
 
   // ---- Core Tracking ----
+
+  // Add click event handler
+
+  // document.addEventListener(
+  //   "click",
+  //   function (event) {
+  //     const target = event.target;
+  //     // Only track clicks on BUTTON and A elements (expand as needed)
+  //     if (
+  //       (target.tagName === "BUTTON" && target.type !== "submit") ||
+  //       target.tagName === "A"
+  //     ) {
+  //       sendEvent("click", {
+  //         element_tag: target.tagName,
+  //         element_id: target.id || null,
+  //         element_classes: target.className || null,
+  //         element_text: target.innerText || null,
+  //       });
+  //     }
+  //   },
+  //   true
+  // );
+
+  document.addEventListener(
+  "click",
+  function (event) {
+    const target = event.target.closest("a, button, input[type=submit], [role=button]");
+    if (!target) return;
+
+    if (target.tagName === "BUTTON" && target.type === "submit") return;
+    if (target.tagName === "INPUT" && target.type === "submit") return;
+
+    sendEvent("click", {
+      element_tag: target.tagName,
+      element_id: target.id || null,
+      element_classes: target.className || null,
+      element_text: target.innerText?.trim().slice(0, 100) || null,
+      href: target.href || null,
+      url: window.location.href,   // jis page par click hua
+      title: document.title,
+    });
+  },
+  true
+);
+
 
   // Page view trigger (with delay for correct title)
   function triggerPageView() {
@@ -98,26 +143,6 @@
 
   window.addEventListener("tracehub-route-change", triggerPageView);
 
-  // Core tracking - Add click event handler
-  document.addEventListener(
-    "click",
-    function (event) {
-      const target = event.target;
-      // Only track clicks on BUTTON and A elements (expand as needed)
-      if (
-        (target.tagName === "BUTTON" && target.type !== "submit") ||
-        target.tagName === "A"
-      ) {
-        sendEvent("click", {
-          element_tag: target.tagName,
-          element_id: target.id || null,
-          element_classes: target.className || null,
-          element_text: target.innerText || null,
-        });
-      }
-    },
-    true
-  );
 
   // Core tracking - Add form submit handler
   document.addEventListener(
@@ -138,6 +163,8 @@
   // Scroll Tracking Logic
 
   let maxScrollPercent = 0;
+  let scrollEventUrl = window.location.href;
+  const pageLoadTime = Date.now();
 
   function handleScroll() {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -147,17 +174,25 @@
 
     if (scrollPercent > maxScrollPercent) {
       maxScrollPercent = scrollPercent;
+      scrollEventUrl = window.location.href;
     }
   }
 
   function sendFinalScrollEvent() {
-    sendEvent("scroll_depth", { max_scroll_percentage: maxScrollPercent });
+    const timeSpent = Math.round((Date.now() - pageLoadTime) / 1000);
+    sendEvent("scroll_depth", { 
+      max_scroll_percentage: maxScrollPercent,
+      time_spent_since_page_load: timeSpent,
+      url: scrollEventUrl,
+    });
   }
+
   document.addEventListener("scroll", handleScroll);
   window.addEventListener("beforeunload", sendFinalScrollEvent);
   window.addEventListener("tracehub-route-change", () => {
     sendFinalScrollEvent();
     maxScrollPercent = 0;
+    scrollEventUrl = window.location.href;
   });
 
   document.addEventListener(
