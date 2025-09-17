@@ -160,4 +160,39 @@
     maxScrollPercent = 0;
   });
 
+  document.addEventListener(
+  "focusin",
+  function (event) {
+    const target = event.target;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") {
+      sendEvent("field_focus", {
+        element_tag: target.tagName,
+        element_id: target.id || null,
+        element_classes: target.className || null,
+        element_name: target.name || null,
+        element_type: target.type || null,
+      });
+    }
+  },
+  true
+);
+
+document.addEventListener(
+  "focusout",
+  function (event) {
+    const target = event.target;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") {
+      sendEvent("field_blur", {
+        element_tag: target.tagName,
+        element_id: target.id || null,
+        element_classes: target.className || null,
+        element_name: target.name || null,
+        element_type: target.type || null,
+      });
+    }
+  },
+  true
+);
+
+
 })();
