@@ -229,5 +229,22 @@ document.addEventListener(
   true
 );
 
+window.addEventListener('error', function (event) {
+  sendEvent('js_error', {
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+    error_stack: event.error ? event.error.stack : null,
+  });
+});
+
+window.addEventListener('unhandledrejection', function (event) {
+  sendEvent('unhandled_promise_rejection', {
+    reason: event.reason ? event.reason.toString() : null,
+  });
+});
+
+
 
 })();
