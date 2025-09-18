@@ -1,5 +1,7 @@
 (function () {
   const STORAGE_KEY = "tracehub_distinct_id";
+  const SESSION_KEY = 'tracehub_session_id';
+  const SESSION_START_KEY = 'tracehub_session_started';
   const API_URL = "http://localhost:4000/api/events/track";
 
   // Generate UUID
@@ -37,7 +39,16 @@
     localStorage.setItem(STORAGE_KEY, distinctId);
   }
 
+  // session key  (per user)
+  let sessionId = sessionStorage.getItem(SESSION_KEY);
+
+  if (!sessionId) {
+    sessionId = generateUUID();
+    sessionStorage.setItem(SESSION_KEY, sessionId);
+  }
+
   const scriptKey = getScriptKey();
+  const pageLoadTime = Date.now();
 
   // Send event
   function sendEvent(eventName, properties = {}) {
@@ -55,12 +66,24 @@
           ...properties,
         },
         distinct_id: distinctId,
+        session_id: sessionId,
         timestamp: new Date().toISOString(),
       }),
     }).catch((error) => {
       console.error("TraceHub event send failed:", error);
     });
   }
+
+  // Send session_start event when session is created
+if (!sessionStorage.getItem(SESSION_START_KEY) && !sessionStorage.getItem("session_end_sent")) {
+  sendEvent("session_start", { 
+    referrer: document.referrer || null,
+    timestamp: new Date().toISOString(),
+  });
+  sessionStorage.setItem(SESSION_START_KEY, "true");
+}
+
+
 
   // Public API
   window.tracehubTrackEvent = function (eventName, properties = {}) {
@@ -70,26 +93,6 @@
   // ---- Core Tracking ----
 
   // Add click event handler
-
-  // document.addEventListener(
-  //   "click",
-  //   function (event) {
-  //     const target = event.target;
-  //     // Only track clicks on BUTTON and A elements (expand as needed)
-  //     if (
-  //       (target.tagName === "BUTTON" && target.type !== "submit") ||
-  //       target.tagName === "A"
-  //     ) {
-  //       sendEvent("click", {
-  //         element_tag: target.tagName,
-  //         element_id: target.id || null,
-  //         element_classes: target.className || null,
-  //         element_text: target.innerText || null,
-  //       });
-  //     }
-  //   },
-  //   true
-  // );
 
   document.addEventListener(
   "click",
@@ -164,7 +167,6 @@
 
   let maxScrollPercent = 0;
   let scrollEventUrl = window.location.href;
-  const pageLoadTime = Date.now();
 
   function handleScroll() {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -188,7 +190,76 @@
   }
 
   document.addEventListener("scroll", handleScroll);
-  window.addEventListener("beforeunload", sendFinalScrollEvent);
+
+// window.addEventListener("beforeunload", () => {
+//     console.log("navEnetry", navEntries)
+//   sendFinalScrollEvent();
+
+//   let navType;
+
+//   // Modern browsers (Navigation Timing Level 2)
+//   const navEntries = performance.getEntriesByType("navigation");
+//   if (navEntries.length > 0 && "type" in navEntries[0]) {
+//     navType = navEntries[0].type; // "navigate" | "reload" | "back_forward"
+//   } 
+//   // Fallback for old browsers
+//   else if (performance.navigation) {
+//     navType = performance.navigation.type; // 0=navigate, 1=reload, 2=back_forward
+//   }
+
+//   // Agar reload hai, skip session_end
+//   if (navType === "reload" || navType === 1) {
+//     return;
+//   }
+
+//   // Agar back/forward hai, skip bhi kar sakte ho
+//   if (navType === "back_forward" || navType === 2) {
+//     return;
+//   }
+
+//   // Tab close / navigate away → session_end bhejna
+//   if (!sessionStorage.getItem("session_end_sent")) {
+//     sessionStorage.setItem("session_end_sent", "true");
+
+//     sendEvent("session_end", { 
+//       time_spent: Math.round((Date.now() - pageLoadTime) / 1000) 
+//     });
+//   }
+// });
+
+function sendSessionEnd() {
+  if (sessionStorage.getItem("session_end_sent")) return;
+
+  sessionStorage.setItem("session_end_sent", "true");
+
+  sendEvent("session_end", {
+    time_spent: Math.round((Date.now() - pageLoadTime) / 1000),
+  });
+}
+
+// 📌 Pagehide → tab close, navigate away, refresh (sab cover karta hai)
+window.addEventListener("pagehide", (e) => {
+  const navEntry = performance.getEntriesByType("navigation")[0];
+  const navType = navEntry?.type || performance.navigation?.type;
+
+  // 🔥 Agar reload hai → session_end skip karo
+  if (navType === "reload" || navType === 1) return;
+
+  // 🔥 Agar back/forward hai → skip karna ho to
+  if (navType === "back_forward" || navType === 2) return;
+
+  sendSessionEnd();
+});
+
+// 📌 Visibilitychange → tab background me gaya ya close hone wala hai
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    sendSessionEnd();
+  }
+});
+
+
+
   window.addEventListener("tracehub-route-change", () => {
     sendFinalScrollEvent();
     maxScrollPercent = 0;
@@ -244,7 +315,5 @@ window.addEventListener('unhandledrejection', function (event) {
     reason: event.reason ? event.reason.toString() : null,
   });
 });
-
-
 
 })();
